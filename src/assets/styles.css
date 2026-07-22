@@ -3090,10 +3090,27 @@ html[data-theme="dark"] {
 
 .range-switcher {
   display: inline-flex;
+  max-width: 100%;
   padding: 3px;
   border: 1px dashed var(--border);
   border-radius: 8px;
   background: color-mix(in srgb, var(--paper-muted) 66%, transparent);
+}
+
+.ping-range-switcher {
+  position: relative;
+  box-shadow: 1px 2px 0 var(--shadow-soft);
+}
+
+.ping-range-switcher::after {
+  position: absolute;
+  right: 8px;
+  bottom: -4px;
+  left: 8px;
+  height: 1px;
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+  content: '';
+  transform: rotate(-0.7deg);
 }
 
 .range-button {
@@ -3866,6 +3883,15 @@ html[data-theme="dark"] {
   .ping-section-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .ping-range-switcher {
+    width: 100%;
+  }
+
+  .ping-range-switcher .range-button {
+    flex: 1;
+    min-width: 0;
   }
 
   .ping-task-chips {

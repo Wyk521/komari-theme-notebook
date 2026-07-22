@@ -1,20 +1,22 @@
-# Komari Notebook v0.8.2
+# Komari Notebook v0.8.3
 
-本版本修复了 [Issue #1](https://github.com/Wyk521/komari-theme-notebook/issues/1) 报告的纸张底色闪烁问题。
+本版本修复了 [Issue #2](https://github.com/Wyk521/komari-theme-notebook/issues/2) 报告的 Ping 检测无法切换时间区间问题。
 
 ## 修复内容
 
-- 非 `warm` 纸张设置刷新时不再短暂显示暖色底色
-- 在样式表加载前同步恢复上次确认的纸张色调
-- 首次访问没有缓存时，等待 Komari 设置返回后再显示纸面
-- 同步提前应用明暗外观，减少页面加载阶段的视觉跳变
+- 在 Ping 监测标题右侧新增 `1h / 2h / 4h / 12h / 24h` 区间按钮
+- Ping 区间与负载趋势区间互相独立
+- 切换时仅请求 `/api/records/ping`，不会刷新整张详情页
+- 区间文字、选中状态及 `aria-pressed` 同步更新
+- 桌面端和移动端均保持作业本纸张风格，且不产生横向溢出
 
 ## 验证
 
-- 首次访问无缓存：错误的默认纸张保持隐藏
-- Komari 设置返回：直接显示配置的纸张色调
-- 后续刷新：首屏立即使用缓存色调，不经过 `warm`
+- 桌面端与 390px 移动端均完整显示五个区间按钮
+- 点击 `2h` 后实际请求携带 `hours=2`
+- 切换后 Ping 图表正常重绘
+- 桌面端横向溢出为 0，详情滚动位置不跳回顶部
 
 ## 安装
 
-下载 Release 附件 `KomariNotebook-v0.8.2-install.zip`，在 Komari 管理后台的主题管理页面上传并启用。
+下载 Release 附件 `KomariNotebook-v0.8.3-install.zip`，在 Komari 管理后台的主题管理页面上传并启用。

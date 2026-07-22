@@ -104,6 +104,8 @@ const MESSAGES = {
     billing: '账单与期限',
     charts: '负载趋势',
     historyWindow: '近 {hours} 小时',
+    loadRangeLabel: '负载趋势时间范围',
+    pingRangeLabel: 'Ping 监测时间范围',
     loadingHistory: '正在读取历史负载……',
     noHistory: '暂无历史记录',
     noHistoryDescription: '可能尚未开启历史记录，或当前节点还没有足够数据。',
@@ -260,6 +262,8 @@ const MESSAGES = {
     billing: 'Billing and expiry',
     charts: 'Load trends',
     historyWindow: 'Last {hours} hours',
+    loadRangeLabel: 'Load trend time range',
+    pingRangeLabel: 'Ping monitoring time range',
     loadingHistory: 'Loading historical metrics…',
     noHistory: 'No historical records',
     noHistoryDescription: 'History may be disabled, or this node does not have enough data yet.',
@@ -412,6 +416,9 @@ const CURRENCY_ALIASES = {
   'JP¥': 'JPY', 'S$': 'SGD', 'C$': 'CAD', 'A$': 'AUD', '₩': 'KRW'
 };
 
+const LOAD_HISTORY_RANGES = [1, 4, 12, 24];
+const PING_HISTORY_RANGES = [1, 2, 4, 12, 24];
+
 const state = {
   publicInfo: null,
   settings: { ...DEFAULTS },
@@ -424,6 +431,7 @@ const state = {
   pingReady: false,
   history: new Map(),
   historyHours: 4,
+  pingHours: 4,
   pingSelection: new Map(),
   liveReady: false,
   liveState: DEMO ? 'open' : 'connecting',
@@ -1010,6 +1018,10 @@ function makeMockHistory(node, nodeIndex) {
   return {
     loadedAt: Date.now(),
     hours: 24,
+    loadHours: 24,
+    pingHours: 24,
+    loadLoadedAt: Date.now(),
+    pingLoadedAt: Date.now(),
     loading: false,
     load: { records, count: records.length },
     ping: { records: pingRecords, count: pingRecords.length, tasks, basic_info: basicInfo },
@@ -2166,12 +2178,13 @@ function alignPingSeries(tasks) {
 function renderPingSection(uuid, entry) {
   const container = document.getElementById('dialog-ping');
   if (!container) return;
-  if (!entry || entry.loading) {
+  container.setAttribute('aria-busy', String(Boolean(entry?.loading || entry?.pingLoading)));
+  if (!entry || entry.loading || (entry.pingLoading && !entry.ping)) {
     container.innerHTML = `<div class="history-state"><span class="history-loader" aria-hidden="true"></span><strong>${escapeHtml(t('loadingHistory'))}</strong></div>`;
     return;
   }
   const pingData = entry.ping || {};
-  const filteredData = { ...pingData, records: filterHistoryRecords(pingData.records, state.historyHours) };
+  const filteredData = { ...pingData, records: filterHistoryRecords(pingData.records, state.pingHours) };
   const tasks = pingTasksForNode(filteredData, uuid);
   if (!tasks.length) {
     container.innerHTML = `<div class="history-state"><strong>${escapeHtml(t('noPingTasks'))}</strong><p>${escapeHtml(t('noHistoryDescription'))}</p></div>`;
@@ -2238,21 +2251,40 @@ async function loadHistory(uuid, force = false) {
   }
   const cached = state.history.get(uuid);
   if (cached?.loading) return;
-  if (!force && cached && cached.hours === state.historyHours && Date.now() - cached.loadedAt < 60000) {
+  if (!force
+    && cached
+    && cached.loadHours === state.historyHours
+    && cached.pingHours === state.pingHours
+    && Date.now() - cached.loadedAt < 60000) {
     renderCharts(uuid);
     return;
   }
 
-  state.history.set(uuid, { ...(cached || {}), hours: state.historyHours, loading: true, error: null });
+  const requestedLoadHours = state.historyHours;
+  const requestedPingHours = state.pingHours;
+  state.history.set(uuid, {
+    ...(cached || {}),
+    hours: requestedLoadHours,
+    loadHours: requestedLoadHours,
+    pingHours: requestedPingHours,
+    loading: true,
+    error: null
+  });
   renderCharts(uuid);
   const [loadResult, pingResult] = await Promise.allSettled([
-    api(`/api/records/load?uuid=${encodeURIComponent(uuid)}&hours=${state.historyHours}&load_type=all`),
-    api(`/api/records/ping?uuid=${encodeURIComponent(uuid)}&hours=${state.historyHours}`)
+    api(`/api/records/load?uuid=${encodeURIComponent(uuid)}&hours=${requestedLoadHours}&load_type=all`),
+    api(`/api/records/ping?uuid=${encodeURIComponent(uuid)}&hours=${requestedPingHours}`)
   ]);
+  const loadedAt = Date.now();
   const entry = {
-    loadedAt: Date.now(),
-    hours: state.historyHours,
+    loadedAt,
+    hours: requestedLoadHours,
+    loadHours: requestedLoadHours,
+    pingHours: requestedPingHours,
+    loadLoadedAt: loadedAt,
+    pingLoadedAt: loadedAt,
     loading: false,
+    pingLoading: false,
     load: loadResult.status === 'fulfilled' ? loadResult.value : null,
     ping: pingResult.status === 'fulfilled' ? pingResult.value : null,
     error: loadResult.status === 'rejected' && pingResult.status === 'rejected'
@@ -2270,6 +2302,69 @@ async function loadHistory(uuid, force = false) {
   }
 }
 
+async function loadPingHistory(uuid, force = false) {
+  const cached = state.history.get(uuid);
+  const renderWithoutScrollJump = (entry) => {
+    const sheet = dom.dialog.querySelector('.dialog-sheet');
+    const scrollTop = sheet?.scrollTop || 0;
+    renderPingSection(uuid, entry);
+    if (sheet) sheet.scrollTop = scrollTop;
+  };
+  if (DEMO) {
+    renderWithoutScrollJump(cached);
+    bindChartInteractions(dom.dialogContent);
+    return;
+  }
+  if (!cached || cached.loading || cached.pingLoading) return;
+  if (!force
+    && cached.ping
+    && cached.pingHours === state.pingHours
+    && Date.now() - (cached.pingLoadedAt || cached.loadedAt || 0) < 60000) {
+    renderPingSection(uuid, cached);
+    bindChartInteractions(dom.dialogContent);
+    return;
+  }
+
+  const requestedHours = state.pingHours;
+  const loadingEntry = {
+    ...cached,
+    pingHours: requestedHours,
+    pingLoading: true,
+    pingError: null
+  };
+  state.history.set(uuid, loadingEntry);
+  renderWithoutScrollJump(loadingEntry);
+
+  try {
+    const ping = await api(`/api/records/ping?uuid=${encodeURIComponent(uuid)}&hours=${requestedHours}`);
+    const entry = {
+      ...state.history.get(uuid),
+      ping,
+      pingHours: requestedHours,
+      pingLoadedAt: Date.now(),
+      pingLoading: false,
+      pingError: null
+    };
+    state.history.set(uuid, entry);
+    const summary = summarizeNodePing(ping, uuid);
+    if (summary.avg !== null || summary.loss !== null) state.ping[uuid] = summary;
+  } catch (error) {
+    state.history.set(uuid, {
+      ...state.history.get(uuid),
+      ping: null,
+      pingHours: requestedHours,
+      pingLoadedAt: Date.now(),
+      pingLoading: false,
+      pingError: error?.message || t('noHistory')
+    });
+  }
+
+  if (state.selected === uuid && dom.dialog.open) {
+    renderWithoutScrollJump(state.history.get(uuid));
+    bindChartInteractions(dom.dialogContent);
+  }
+}
+
 function renderDialog(uuid) {
   const node = state.nodes.find((item) => item.uuid === uuid);
   if (!node) return;
@@ -2277,7 +2372,8 @@ function renderDialog(uuid) {
   const online = isOnline(node);
   const tags = splitTags(node.tags);
   const group = cleanText(node.group);
-  const ranges = [1, 4, 12, 24].map((hours) => `<button class="range-button ${state.historyHours === hours ? 'is-active' : ''}" type="button" data-history-hours="${hours}">${hours}h</button>`).join('');
+  const ranges = LOAD_HISTORY_RANGES.map((hours) => `<button class="range-button ${state.historyHours === hours ? 'is-active' : ''}" type="button" data-history-hours="${hours}" aria-pressed="${state.historyHours === hours}">${hours}h</button>`).join('');
+  const pingRanges = PING_HISTORY_RANGES.map((hours) => `<button class="range-button ${state.pingHours === hours ? 'is-active' : ''}" type="button" data-ping-hours="${hours}" aria-pressed="${state.pingHours === hours}">${hours}h</button>`).join('');
 
   dom.dialogContent.innerHTML = `<header class="dialog-header">
     <span class="region-mark">${escapeHtml(node.region || '🖥️')}</span>
@@ -2286,8 +2382,8 @@ function renderDialog(uuid) {
   ${tags.length ? `<div class="node-tags dialog-tags">${tags.map((tag) => `<span class="node-tag"># ${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
   <div class="dialog-overview" id="dialog-overview"></div>
   ${node.public_remark ? `<section class="dialog-remark-section"><h3>${icon('tag', 17)}${escapeHtml(t('publicRemark'))}</h3><div class="dialog-remark">${escapeHtml(node.public_remark)}</div></section>` : ''}
-  <section class="charts-section"><div class="section-title-row"><h3>${icon('chart', 18)}${escapeHtml(t('charts'))}<small>${escapeHtml(t('historyWindow', { hours: state.historyHours }))}</small></h3><div class="range-switcher">${ranges}</div></div><div id="dialog-charts"></div></section>
-  <section class="ping-monitor-section"><div class="section-title-row"><h3>${icon('signal', 18)}${escapeHtml(t('pingMonitoring'))}</h3></div><div id="dialog-ping"></div></section>`;
+  <section class="charts-section"><div class="section-title-row"><h3>${icon('chart', 18)}${escapeHtml(t('charts'))}<small>${escapeHtml(t('historyWindow', { hours: state.historyHours }))}</small></h3><div class="range-switcher" aria-label="${escapeHtml(t('loadRangeLabel'))}">${ranges}</div></div><div id="dialog-charts"></div></section>
+  <section class="ping-monitor-section"><div class="section-title-row"><h3>${icon('signal', 18)}${escapeHtml(t('pingMonitoring'))}<small data-ping-window>${escapeHtml(t('historyWindow', { hours: state.pingHours }))}</small></h3><div class="range-switcher ping-range-switcher" aria-label="${escapeHtml(t('pingRangeLabel'))}">${pingRanges}</div></div><div id="dialog-ping"></div></section>`;
   renderDialogOverview(uuid);
   renderCharts(uuid);
 }
@@ -2473,7 +2569,7 @@ function hideHoverTip() {
 function currentPingTasks(uuid) {
   const entry = state.history.get(uuid);
   if (!entry?.ping) return [];
-  const filtered = { ...entry.ping, records: filterHistoryRecords(entry.ping.records, state.historyHours) };
+  const filtered = { ...entry.ping, records: filterHistoryRecords(entry.ping.records, state.pingHours) };
   return pingTasksForNode(filtered, uuid);
 }
 
@@ -2534,10 +2630,27 @@ function bind() {
     const range = event.target.closest('[data-history-hours]');
     if (range && state.selected) {
       const hours = Number(range.dataset.historyHours);
-      if ([1, 4, 12, 24].includes(hours) && hours !== state.historyHours) {
+      if (LOAD_HISTORY_RANGES.includes(hours) && hours !== state.historyHours) {
         state.historyHours = hours;
         renderDialog(state.selected);
         void loadHistory(state.selected, true);
+      }
+    }
+
+    const pingRange = event.target.closest('[data-ping-hours]');
+    if (pingRange && state.selected) {
+      const hours = Number(pingRange.dataset.pingHours);
+      const entry = state.history.get(state.selected);
+      if (PING_HISTORY_RANGES.includes(hours) && hours !== state.pingHours && !entry?.loading && !entry?.pingLoading) {
+        state.pingHours = hours;
+        for (const button of dom.dialogContent.querySelectorAll('[data-ping-hours]')) {
+          const active = Number(button.dataset.pingHours) === hours;
+          button.classList.toggle('is-active', active);
+          button.setAttribute('aria-pressed', String(active));
+        }
+        const windowLabel = dom.dialogContent.querySelector('[data-ping-window]');
+        if (windowLabel) windowLabel.textContent = t('historyWindow', { hours });
+        void loadPingHistory(state.selected, true);
       }
     }
 
