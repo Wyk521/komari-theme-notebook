@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f4edda" />
+    <title>Komari Monitor</title>
+    <meta name="description" content="A simple server monitor tool." />
+    <link rel="icon" href="/themes/KomariNotebook/dist/assets/notebook.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/themes/KomariNotebook/dist/assets/styles.css" />
+  </head>
+  <body>
+    <div class="desk-grain" aria-hidden="true"></div>
+    <main id="app" class="notebook-shell is-loading" aria-busy="true">
+      <div class="binder-strip" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="paper-page">
+        <header class="topbar">
+          <a class="brand" href="/" aria-label="Komari Monitor">
+            <span class="brand-mark" data-icon="notebook"></span>
+            <span class="brand-copy">
+              <span class="brand-title-row">
+                <strong id="site-name">Komari</strong>
+                <span class="brand-divider" aria-hidden="true">/</span>
+                <span class="compact-notebook-title" id="notebook-title">服务器作业本</span>
+              </span>
+              <small><span class="connection-dot" aria-hidden="true"></span><span id="connection-label">正在连接实时数据</span></small>
+            </span>
+          </a>
+
+          <p class="topbar-subtitle" id="notebook-subtitle">每一台节点，都是今天要认真检查的一页。</p>
+
+          <nav class="top-actions" aria-label="页面工具">
+            <button class="icon-button" id="refresh-button" type="button" data-tooltip="刷新" aria-label="刷新数据"><span data-icon="refresh"></span></button>
+            <button class="icon-button" id="language-button" type="button" data-tooltip="语言" aria-label="切换语言"><span class="language-mark">中</span></button>
+            <button class="icon-button" id="appearance-button" type="button" data-tooltip="外观" aria-label="切换外观"><span data-icon="sun"></span></button>
+            <a class="icon-button" href="/admin" data-tooltip="管理后台" aria-label="打开管理后台"><span data-icon="settings"></span></a>
+          </nav>
+        </header>
+
+        <section class="summary-section" id="summary-section" aria-label="节点统计">
+          <article class="summary-note note-yellow summary-nodes">
+            <span class="summary-icon" data-icon="server"></span>
+            <div class="summary-copy">
+              <small id="summary-node-label">节点状态</small>
+              <strong id="summary-node-value">— / —</strong>
+              <span class="summary-subline" id="summary-node-caption">在线 / 全部</span>
+            </div>
+          </article>
+
+          <article class="summary-note note-pink summary-rate">
+            <span class="summary-icon" data-icon="activity"></span>
+            <div class="summary-copy">
+              <small id="summary-speed-label">实时速率</small>
+              <div class="summary-dual-line">
+                <strong><em>↑</em><span id="summary-up">—</span></strong>
+                <strong><em>↓</em><span id="summary-down">—</span></strong>
+              </div>
+              <span class="summary-subline" id="summary-rate-caption">上行 / 下行</span>
+            </div>
+          </article>
+
+          <article class="summary-note note-blue summary-traffic">
+            <span class="summary-icon" data-icon="network"></span>
+            <div class="summary-copy">
+              <small id="summary-traffic-label">累计流量</small>
+              <div class="summary-dual-line">
+                <strong><em>↑</em><span id="summary-total-up">—</span></strong>
+                <strong><em>↓</em><span id="summary-total-down">—</span></strong>
+              </div>
+              <span class="summary-subline" id="summary-traffic-caption">上行 / 下行累计</span>
+            </div>
+            <button class="summary-expand" id="traffic-overview-button" type="button" aria-label="查看累计流量详情" aria-expanded="false" aria-controls="overview-dialog" data-tooltip="查看详情"><span data-icon="chevron"></span></button>
+          </article>
+
+          <article class="summary-note note-green summary-assets">
+            <span class="summary-icon" data-icon="layers"></span>
+            <div class="summary-copy">
+              <small id="summary-assets-label">资产概览</small>
+              <strong id="summary-asset-primary">—</strong>
+              <span class="summary-subline" id="summary-asset-secondary">月均费用</span>
+            </div>
+            <button class="summary-expand" id="asset-overview-button" type="button" aria-label="查看资产详情" aria-expanded="false" aria-controls="overview-dialog" data-tooltip="查看详情"><span data-icon="chevron"></span></button>
+          </article>
+        </section>
+
+        <section class="control-section" aria-label="节点筛选">
+          <div class="section-heading">
+            <div>
+              <span class="handwritten-mark" aria-hidden="true">✓</span>
+              <h2 id="node-list-title">节点检查清单</h2>
+              <p id="node-count-text">正在读取节点……</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <label class="search-box" id="search-box">
+              <span data-icon="search" aria-hidden="true"></span>
+              <span class="sr-only" id="search-label">搜索节点</span>
+              <input id="search-input" type="search" autocomplete="off" placeholder="搜索名称、分组、标签或系统" />
+              <kbd>/</kbd>
+            </label>
+
+            <div class="sort-control" id="sort-control">
+              <span class="sr-only" id="sort-label">排序方式</span>
+              <button class="sort-trigger" id="sort-button" type="button" aria-haspopup="menu" aria-expanded="false">
+                <span data-icon="sort" aria-hidden="true"></span>
+                <span id="sort-current">默认顺序</span>
+                <span class="sort-chevron" data-icon="chevron" aria-hidden="true"></span>
+              </button>
+              <div class="sort-menu" id="sort-menu" role="menu" hidden>
+                <button type="button" role="menuitemradio" data-sort="weight" aria-checked="true"><span data-icon="check"></span><span data-sort-label="sortWeight">默认顺序</span></button>
+                <button type="button" role="menuitemradio" data-sort="online" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortOnline">在线优先</span></button>
+                <button type="button" role="menuitemradio" data-sort="name" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortName">名称</span></button>
+                <button type="button" role="menuitemradio" data-sort="cpu" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortCpu">CPU 使用率</span></button>
+                <button type="button" role="menuitemradio" data-sort="ram" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortRam">内存使用率</span></button>
+                <button type="button" role="menuitemradio" data-sort="network" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortNetwork">实时网速</span></button>
+                <button type="button" role="menuitemradio" data-sort="remaining" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortRemaining">剩余流量</span></button>
+                <button type="button" role="menuitemradio" data-sort="latency" aria-checked="false"><span data-icon="check"></span><span data-sort-label="sortLatency">延迟</span></button>
+              </div>
+            </div>
+
+            <div class="view-switcher" role="group" aria-label="视图模式">
+              <button class="view-button is-active" type="button" data-view="cards" aria-pressed="true"><span data-icon="grid"></span><span id="cards-view-label">卡片</span></button>
+              <button class="view-button" type="button" data-view="table" aria-pressed="false"><span data-icon="list"></span><span id="table-view-label">表格</span></button>
+            </div>
+          </div>
+
+          <div class="group-tabs is-hidden" id="group-tabs" role="tablist" aria-label="节点分组"></div>
+        </section>
+
+        <section class="content-section" aria-live="polite">
+          <div class="notice is-hidden" id="notice" role="status"></div>
+          <div class="skeleton-grid" id="skeleton-grid" aria-label="正在加载">
+            <article class="skeleton-card"></article>
+            <article class="skeleton-card"></article>
+            <article class="skeleton-card"></article>
+            <article class="skeleton-card"></article>
+          </div>
+          <div class="node-grid" id="node-grid"></div>
+          <div class="node-table-wrap is-hidden" id="node-table-wrap"></div>
+          <div class="empty-state is-hidden" id="empty-state">
+            <span class="empty-doodle" data-icon="search"></span>
+            <h3 id="empty-title">没有找到符合条件的节点</h3>
+            <p id="empty-description">换个关键词或分组再试试。</p>
+            <button class="text-button" id="clear-filter-button" type="button">清除筛选</button>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <p class="footer-note" id="footer-note">今日也要认真检查服务器。</p>
+          <p>Powered by Komari Monitor.</p>
+        </footer>
+      </div>
+    </main>
+
+    <dialog class="node-dialog" id="node-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-sheet">
+        <div class="dialog-handle" aria-hidden="true"></div>
+        <button class="dialog-close icon-button" id="dialog-close" type="button" aria-label="关闭"><span data-icon="x"></span></button>
+        <div id="dialog-content"></div>
+      </div>
+    </dialog>
+
+    <dialog class="overview-dialog" id="overview-dialog" aria-labelledby="overview-title">
+      <div class="overview-sheet">
+        <div class="dialog-handle" aria-hidden="true"></div>
+        <button class="dialog-close icon-button" id="overview-close" type="button" aria-label="关闭"><span data-icon="x"></span></button>
+        <div id="overview-content"></div>
+      </div>
+    </dialog>
+
+    <div class="hover-tip" id="hover-tip" role="tooltip" hidden></div>
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <noscript><div class="noscript-message">此主题需要启用 JavaScript 才能读取 Komari 节点数据。</div></noscript>
+    <script type="module" src="/themes/KomariNotebook/dist/assets/app.js"></script>
+  </body>
+</html>
