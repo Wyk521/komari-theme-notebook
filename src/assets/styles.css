@@ -150,6 +150,19 @@ html {
   scroll-behavior: smooth;
 }
 
+html[data-settings-pending="true"] {
+  background: #f3f4f4;
+}
+
+html[data-settings-pending="true"] body {
+  visibility: hidden;
+  animation: settings-visibility-fallback 0s 1.5s forwards;
+}
+
+@keyframes settings-visibility-fallback {
+  to { visibility: visible; }
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;

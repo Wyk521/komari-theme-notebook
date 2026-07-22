@@ -21,7 +21,7 @@
 
 ## 安装
 
-1. 从 [Releases](https://github.com/Wyk521/komari-theme-notebook/releases) 下载 `KomariNotebook-v0.8.1-install.zip`。
+1. 从 [Releases](https://github.com/Wyk521/komari-theme-notebook/releases) 下载最新版安装包。
 2. 进入 Komari 管理后台的主题管理页面。
 3. 上传 ZIP 并启用 `Komari Notebook 作业本`。
 4. 根据需要选择三列或四列、刷新间隔、纸张色调及其他显示选项。
@@ -55,6 +55,11 @@ screenshots/          项目截图
 komari-theme.json     托管主题清单与设置项
 preview.png           Komari 主题预览图
 ```
+
+## v0.8.2
+
+- 修复非暖色纸张设置在刷新时短暂闪现 `warm` 底色的问题
+- 在样式表加载前恢复缓存色调；首次访问等待 Komari 设置后再显示纸面
 
 ## v0.8.1
 

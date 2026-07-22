@@ -389,6 +389,8 @@ const DEMO = QUERY.get('demo') === '1';
 const STATIC_DEMO = DEMO && QUERY.get('static') === '1';
 const DEMO_REFRESH = QUERY.get('refresh');
 const DEMO_TAGS = QUERY.get('tags');
+const DEMO_PAPER = QUERY.get('paper');
+const PAPER_TONE_CACHE_KEY = 'komari-notebook-paper-tone';
 
 const DEFAULT_EXCHANGE_RATES_CNY = {
   CNY: 1,
@@ -1039,7 +1041,16 @@ function normalizeSettings(raw = {}) {
 }
 
 function applySettings() {
-  state.settings = normalizeSettings(state.publicInfo?.theme_settings);
+  const remoteSettings = state.publicInfo?.theme_settings;
+  let cachedPaperTone = null;
+  try {
+    const value = localStorage.getItem(PAPER_TONE_CACHE_KEY);
+    if (['warm', 'white', 'blue'].includes(value)) cachedPaperTone = value;
+  } catch {
+    cachedPaperTone = null;
+  }
+  const initialSettings = remoteSettings || (cachedPaperTone ? { paper_tone: cachedPaperTone } : {});
+  state.settings = normalizeSettings(initialSettings);
   document.documentElement.dataset.accent = state.settings.accent_color;
   document.documentElement.dataset.paper = state.settings.paper_tone;
   document.documentElement.dataset.cardColumns = state.settings.card_columns;
@@ -1054,6 +1065,14 @@ function applySettings() {
   state.view = storedView === 'table' || storedView === 'cards' ? storedView : state.settings.default_view;
   if (innerWidth <= 760) state.view = 'cards';
   updateViewButtons();
+  if (state.publicInfo) {
+    try {
+      localStorage.setItem(PAPER_TONE_CACHE_KEY, state.settings.paper_tone);
+    } catch {
+      // Storage may be unavailable in privacy-restricted contexts.
+    }
+    delete document.documentElement.dataset.settingsPending;
+  }
 }
 
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
@@ -1199,7 +1218,8 @@ async function load() {
       theme_settings: {
         ...DEFAULTS,
         ...(DEMO_REFRESH ? { refresh_seconds: DEMO_REFRESH } : {}),
-        ...(DEMO_TAGS === '0' ? { show_tags: false } : {})
+        ...(DEMO_TAGS === '0' ? { show_tags: false } : {}),
+        ...(['warm', 'white', 'blue'].includes(DEMO_PAPER) ? { paper_tone: DEMO_PAPER } : {})
       }
     };
     state.nodes = structuredClone(MOCK_NODES);

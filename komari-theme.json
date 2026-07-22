@@ -2,7 +2,7 @@
   "name": "Komari Notebook 作业本",
   "short": "KomariNotebook",
   "description": "清爽作业本风格的 Komari 主题，支持三列/四列节点卡片、人民币资产概览、清晰资源进度条、分段网络质量、多线路 Ping 与交互式负载图表。",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "author": "komari主题制作",
   "preview": "preview.png",
   "configuration": {
