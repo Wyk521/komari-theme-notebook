@@ -52,7 +52,6 @@ src/                  主题源码
 dist/                 可直接部署的构建产物
 scripts/              构建与结构检查脚本
 screenshots/          项目截图
-release/              Komari 可导入安装包
 komari-theme.json     托管主题清单与设置项
 preview.png           Komari 主题预览图
 ```
