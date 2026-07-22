@@ -104,6 +104,7 @@ const MESSAGES = {
     billing: '账单与期限',
     charts: '负载趋势',
     historyWindow: '近 {hours} 小时',
+    historyWindowDays: '近 {days} 天',
     loadRangeLabel: '负载趋势时间范围',
     pingRangeLabel: 'Ping 监测时间范围',
     loadingHistory: '正在读取历史负载……',
@@ -262,6 +263,7 @@ const MESSAGES = {
     billing: 'Billing and expiry',
     charts: 'Load trends',
     historyWindow: 'Last {hours} hours',
+    historyWindowDays: 'Last {days} days',
     loadRangeLabel: 'Load trend time range',
     pingRangeLabel: 'Ping monitoring time range',
     loadingHistory: 'Loading historical metrics…',
@@ -385,6 +387,7 @@ const DEFAULTS = {
   show_group_filter: true,
   show_tags: true,
   show_hardware: true,
+  show_long_history: false,
   refresh_seconds: 5
 };
 
@@ -419,6 +422,25 @@ const CURRENCY_ALIASES = {
 
 const LOAD_HISTORY_RANGES = [1, 4, 12, 24];
 const PING_HISTORY_RANGES = [1, 2, 4, 12, 24];
+const LONG_HISTORY_RANGES = [168, 720, 2160];
+
+function loadHistoryRanges() {
+  return state.settings.show_long_history ? [...LOAD_HISTORY_RANGES, ...LONG_HISTORY_RANGES] : LOAD_HISTORY_RANGES;
+}
+
+function pingHistoryRanges() {
+  return state.settings.show_long_history ? [...PING_HISTORY_RANGES, ...LONG_HISTORY_RANGES] : PING_HISTORY_RANGES;
+}
+
+function historyRangeLabel(hours) {
+  return hours >= 168 && hours % 24 === 0 ? `${hours / 24}${language === 'zh-CN' ? '天' : 'd'}` : `${hours}h`;
+}
+
+function historyWindowLabel(hours) {
+  return hours >= 168 && hours % 24 === 0
+    ? t('historyWindowDays', { days: hours / 24 })
+    : t('historyWindow', { hours });
+}
 
 const state = {
   publicInfo: null,
@@ -1046,7 +1068,7 @@ function normalizeSettings(raw = {}) {
   settings.paper_tone = ['warm', 'white', 'blue'].includes(settings.paper_tone) ? settings.paper_tone : 'warm';
   settings.default_view = settings.default_view === 'table' ? 'table' : 'cards';
   settings.card_columns = String(settings.card_columns) === '3' ? '3' : '4';
-  for (const key of ['show_summary', 'show_search', 'show_group_filter', 'show_tags', 'show_hardware']) {
+  for (const key of ['show_summary', 'show_search', 'show_group_filter', 'show_tags', 'show_hardware', 'show_long_history']) {
     settings[key] = bool(settings[key], DEFAULTS[key]);
   }
   settings.refresh_seconds = clamp(Number(settings.refresh_seconds) || 5, 1, 60);
@@ -1071,6 +1093,10 @@ function applySettings() {
     ...(cachedPaperTone && !cachedSettings.paper_tone ? { paper_tone: cachedPaperTone } : {})
   };
   state.settings = normalizeSettings(initialSettings);
+  if (!state.settings.show_long_history) {
+    if (!LOAD_HISTORY_RANGES.includes(state.historyHours)) state.historyHours = 4;
+    if (!PING_HISTORY_RANGES.includes(state.pingHours)) state.pingHours = 4;
+  }
   document.documentElement.dataset.accent = state.settings.accent_color;
   document.documentElement.dataset.paper = state.settings.paper_tone;
   document.documentElement.dataset.cardColumns = state.settings.card_columns;
@@ -2381,8 +2407,8 @@ function renderDialog(uuid) {
   const online = isOnline(node);
   const tags = splitTags(node.tags);
   const group = cleanText(node.group);
-  const ranges = LOAD_HISTORY_RANGES.map((hours) => `<button class="range-button ${state.historyHours === hours ? 'is-active' : ''}" type="button" data-history-hours="${hours}" aria-pressed="${state.historyHours === hours}">${hours}h</button>`).join('');
-  const pingRanges = PING_HISTORY_RANGES.map((hours) => `<button class="range-button ${state.pingHours === hours ? 'is-active' : ''}" type="button" data-ping-hours="${hours}" aria-pressed="${state.pingHours === hours}">${hours}h</button>`).join('');
+  const ranges = loadHistoryRanges().map((hours) => `<button class="range-button ${state.historyHours === hours ? 'is-active' : ''}" type="button" data-history-hours="${hours}" aria-pressed="${state.historyHours === hours}">${historyRangeLabel(hours)}</button>`).join('');
+  const pingRanges = pingHistoryRanges().map((hours) => `<button class="range-button ${state.pingHours === hours ? 'is-active' : ''}" type="button" data-ping-hours="${hours}" aria-pressed="${state.pingHours === hours}">${historyRangeLabel(hours)}</button>`).join('');
 
   dom.dialogContent.innerHTML = `<header class="dialog-header">
     <span class="region-mark">${escapeHtml(node.region || '🖥️')}</span>
@@ -2391,8 +2417,8 @@ function renderDialog(uuid) {
   ${tags.length ? `<div class="node-tags dialog-tags">${tags.map((tag) => `<span class="node-tag"># ${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
   <div class="dialog-overview" id="dialog-overview"></div>
   ${node.public_remark ? `<section class="dialog-remark-section"><h3>${icon('tag', 17)}${escapeHtml(t('publicRemark'))}</h3><div class="dialog-remark">${escapeHtml(node.public_remark)}</div></section>` : ''}
-  <section class="charts-section"><div class="section-title-row"><h3>${icon('chart', 18)}${escapeHtml(t('charts'))}<small>${escapeHtml(t('historyWindow', { hours: state.historyHours }))}</small></h3><div class="range-switcher" aria-label="${escapeHtml(t('loadRangeLabel'))}">${ranges}</div></div><div id="dialog-charts"></div></section>
-  <section class="ping-monitor-section"><div class="section-title-row"><h3>${icon('signal', 18)}${escapeHtml(t('pingMonitoring'))}<small data-ping-window>${escapeHtml(t('historyWindow', { hours: state.pingHours }))}</small></h3><div class="range-switcher ping-range-switcher" aria-label="${escapeHtml(t('pingRangeLabel'))}">${pingRanges}</div></div><div id="dialog-ping"></div></section>`;
+  <section class="charts-section"><div class="section-title-row"><h3>${icon('chart', 18)}${escapeHtml(t('charts'))}<small>${escapeHtml(historyWindowLabel(state.historyHours))}</small></h3><div class="range-switcher" aria-label="${escapeHtml(t('loadRangeLabel'))}">${ranges}</div></div><div id="dialog-charts"></div></section>
+  <section class="ping-monitor-section"><div class="section-title-row"><h3>${icon('signal', 18)}${escapeHtml(t('pingMonitoring'))}<small data-ping-window>${escapeHtml(historyWindowLabel(state.pingHours))}</small></h3><div class="range-switcher ping-range-switcher" aria-label="${escapeHtml(t('pingRangeLabel'))}">${pingRanges}</div></div><div id="dialog-ping"></div></section>`;
   renderDialogOverview(uuid);
   renderCharts(uuid);
 }
@@ -2639,7 +2665,7 @@ function bind() {
     const range = event.target.closest('[data-history-hours]');
     if (range && state.selected) {
       const hours = Number(range.dataset.historyHours);
-      if (LOAD_HISTORY_RANGES.includes(hours) && hours !== state.historyHours) {
+      if (loadHistoryRanges().includes(hours) && hours !== state.historyHours) {
         state.historyHours = hours;
         renderDialog(state.selected);
         void loadHistory(state.selected, true);
@@ -2650,7 +2676,7 @@ function bind() {
     if (pingRange && state.selected) {
       const hours = Number(pingRange.dataset.pingHours);
       const entry = state.history.get(state.selected);
-      if (PING_HISTORY_RANGES.includes(hours) && hours !== state.pingHours && !entry?.loading && !entry?.pingLoading) {
+      if (pingHistoryRanges().includes(hours) && hours !== state.pingHours && !entry?.loading && !entry?.pingLoading) {
         state.pingHours = hours;
         for (const button of dom.dialogContent.querySelectorAll('[data-ping-hours]')) {
           const active = Number(button.dataset.pingHours) === hours;
@@ -2658,7 +2684,7 @@ function bind() {
           button.setAttribute('aria-pressed', String(active));
         }
         const windowLabel = dom.dialogContent.querySelector('[data-ping-window]');
-        if (windowLabel) windowLabel.textContent = t('historyWindow', { hours });
+        if (windowLabel) windowLabel.textContent = historyWindowLabel(hours);
         void loadPingHistory(state.selected, true);
       }
     }

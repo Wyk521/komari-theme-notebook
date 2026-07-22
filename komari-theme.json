@@ -2,8 +2,8 @@
   "name": "Komari Notebook 作业本",
   "short": "KomariNotebook",
   "description": "清爽作业本风格的 Komari 主题，支持三列/四列节点卡片、人民币资产概览、清晰资源进度条、分段网络质量、多线路 Ping 与交互式负载图表。",
-  "version": "0.8.5",
-  "author": "komari主题制作",
+  "version": "0.8.6",
+  "author": "Wyk521",
   "url": "https://github.com/Wyk521/komari-theme-notebook",
   "preview": "preview.png",
   "configuration": {
@@ -153,6 +153,19 @@
         "help": {
           "zh-CN": "在 CPU、内存和硬盘指标下方显示型号、核心数与容量信息。",
           "en": "Show model, core count, and capacity details beneath resource meters."
+        }
+      },
+      {
+        "key": "show_long_history",
+        "name": {
+          "zh-CN": "显示 7/30/90 天历史",
+          "en": "Show 7/30/90-day history"
+        },
+        "type": "switch",
+        "default": false,
+        "help": {
+          "zh-CN": "开启后，节点详情的负载与 Ping 延迟范围会增加 7 天、30 天和 90 天。长期查询数据量较大，默认关闭。",
+          "en": "Adds 7, 30, and 90-day ranges to load and Ping latency details. Long queries can be large, so this is disabled by default."
         }
       },
       {
