@@ -395,6 +395,7 @@ const DEMO_REFRESH = QUERY.get('refresh');
 const DEMO_TAGS = QUERY.get('tags');
 const DEMO_PAPER = QUERY.get('paper');
 const PAPER_TONE_CACHE_KEY = 'komari-notebook-paper-tone';
+const SETTINGS_CACHE_KEY = 'komari-notebook-settings';
 
 const DEFAULT_EXCHANGE_RATES_CNY = {
   CNY: 1,
@@ -1055,13 +1056,20 @@ function normalizeSettings(raw = {}) {
 function applySettings() {
   const remoteSettings = state.publicInfo?.theme_settings;
   let cachedPaperTone = null;
+  let cachedSettings = {};
   try {
     const value = localStorage.getItem(PAPER_TONE_CACHE_KEY);
     if (['warm', 'white', 'blue'].includes(value)) cachedPaperTone = value;
+    const parsed = JSON.parse(localStorage.getItem(SETTINGS_CACHE_KEY) || '{}');
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) cachedSettings = parsed;
   } catch {
     cachedPaperTone = null;
+    cachedSettings = {};
   }
-  const initialSettings = remoteSettings || (cachedPaperTone ? { paper_tone: cachedPaperTone } : {});
+  const initialSettings = remoteSettings || {
+    ...cachedSettings,
+    ...(cachedPaperTone && !cachedSettings.paper_tone ? { paper_tone: cachedPaperTone } : {})
+  };
   state.settings = normalizeSettings(initialSettings);
   document.documentElement.dataset.accent = state.settings.accent_color;
   document.documentElement.dataset.paper = state.settings.paper_tone;
@@ -1080,6 +1088,7 @@ function applySettings() {
   if (state.publicInfo) {
     try {
       localStorage.setItem(PAPER_TONE_CACHE_KEY, state.settings.paper_tone);
+      localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(state.settings));
     } catch {
       // Storage may be unavailable in privacy-restricted contexts.
     }

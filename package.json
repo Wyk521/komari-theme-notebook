@@ -1,7 +1,7 @@
 {
   "name": "komari-notebook-theme",
   "private": true,
-  "version": "0.8.3",
+  "version": "0.8.4",
   "type": "module",
   "description": "Compact notebook-style Komari theme with interactive charts and multi-route Ping.",
   "scripts": {

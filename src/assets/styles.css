@@ -3922,6 +3922,110 @@ html[data-theme="dark"] {
 }
 
 /* --------------------------------------------------------------------------
+   Komari Notebook 0.8.4 — layout-aware notebook loading cards
+   -------------------------------------------------------------------------- */
+
+.skeleton-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+html[data-card-columns="3"] .skeleton-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html[data-card-columns="3"] .skeleton-card:nth-child(4) {
+  display: none;
+}
+
+.skeleton-card {
+  position: relative;
+  min-height: 300px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 2px 3px 2px 3px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 35%, transparent), color-mix(in srgb, var(--ink-faint) 35%, transparent)) 66px 24px / 34% 12px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 22%, transparent), color-mix(in srgb, var(--ink-faint) 22%, transparent)) 66px 44px / 22% 8px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--accent) 30%, transparent), color-mix(in srgb, var(--accent) 30%, transparent)) 16px 88px / calc(50% - 24px) 9px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 22%, transparent), color-mix(in srgb, var(--ink-faint) 22%, transparent)) 16px 109px / calc(50% - 38px) 7px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 24%, transparent)) calc(50% + 8px) 88px / calc(50% - 24px) 9px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 22%, transparent), color-mix(in srgb, var(--ink-faint) 22%, transparent)) calc(50% + 8px) 109px / calc(50% - 38px) 7px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 18%, transparent), color-mix(in srgb, var(--ink-faint) 18%, transparent)) 16px 154px / calc(100% - 32px) 1px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--accent) 26%, transparent), color-mix(in srgb, var(--accent) 26%, transparent)) 16px 184px / calc(50% - 24px) 9px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 20%, transparent), color-mix(in srgb, var(--ink-faint) 20%, transparent)) 16px 205px / calc(50% - 38px) 7px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--success) 24%, transparent), color-mix(in srgb, var(--success) 24%, transparent)) calc(50% + 8px) 184px / calc(50% - 24px) 9px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 20%, transparent), color-mix(in srgb, var(--ink-faint) 20%, transparent)) calc(50% + 8px) 205px / calc(50% - 38px) 7px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 18%, transparent), color-mix(in srgb, var(--ink-faint) 18%, transparent)) 16px 239px / calc(100% - 32px) 1px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--accent) 22%, transparent), color-mix(in srgb, var(--accent) 22%, transparent)) 16px 264px / 58% 8px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 18%, transparent), color-mix(in srgb, var(--ink-faint) 18%, transparent)) 16px 283px / 42% 6px no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 24px, color-mix(in srgb, var(--rule) 40%, transparent) 24px 25px),
+    var(--paper-raised);
+  box-shadow: 1px 2px 0 color-mix(in srgb, var(--ink) 12%, transparent);
+  animation: none;
+}
+
+.skeleton-card::before {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--ink-faint) 28%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper-muted) 78%, var(--paper-raised));
+  content: '';
+}
+
+.skeleton-card::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, white 32%, transparent) 47%, transparent 64%);
+  content: '';
+  transform: translateX(-110%);
+  animation: notebook-skeleton 1.45s ease-in-out infinite;
+}
+
+@keyframes notebook-skeleton {
+  to { transform: translateX(110%); }
+}
+
+@media (max-width: 1040px) {
+  .skeleton-grid,
+  html[data-card-columns="3"] .skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skeleton-card:nth-child(n + 3),
+  html[data-card-columns="3"] .skeleton-card:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .skeleton-grid,
+  html[data-card-columns="3"] .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-card:nth-child(n + 2),
+  html[data-card-columns="3"] .skeleton-card:nth-child(n + 2) {
+    display: none;
+  }
+
+  .skeleton-card {
+    min-height: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card::after {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Komari Notebook 0.6 — unified polish and compact four-column cards
    -------------------------------------------------------------------------- */
 
