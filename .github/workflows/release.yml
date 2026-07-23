@@ -45,12 +45,15 @@ jobs:
       - name: Package theme
         shell: bash
         run: |
-          mkdir -p release/KomariNotebook
-          cp -R dist release/KomariNotebook/dist
-          cp komari-theme.json preview.png release/KomariNotebook/
-          cd release
-          zip -r "KomariNotebook-v${{ steps.version.outputs.version }}.zip" KomariNotebook
+          mkdir -p release/package
+          cp -R dist release/package/dist
+          cp komari-theme.json preview.png release/package/
+          cd release/package
+          zip -r "../KomariNotebook-v${{ steps.version.outputs.version }}.zip" .
+          cd ..
           sha256sum "KomariNotebook-v${{ steps.version.outputs.version }}.zip" > "KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256"
+          unzip -l "KomariNotebook-v${{ steps.version.outputs.version }}.zip"
+          unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'komari-theme.json'
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
@@ -59,6 +62,7 @@ jobs:
           name: Komari Notebook v${{ steps.version.outputs.version }}
           generate_release_notes: true
           make_latest: true
+          overwrite_files: true
           files: |
             release/KomariNotebook-v${{ steps.version.outputs.version }}.zip
             release/KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256
