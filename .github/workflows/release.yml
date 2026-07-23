@@ -1,0 +1,64 @@
+name: Build and publish release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - komari-theme.json
+      - src/**
+      - scripts/**
+      - dist/**
+      - preview.png
+      - .github/workflows/release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: npm run build
+
+      - name: Check
+        run: npm run check
+
+      - name: Package theme
+        shell: bash
+        run: |
+          mkdir -p release/KomariNotebook
+          cp -R dist release/KomariNotebook/dist
+          cp komari-theme.json preview.png release/KomariNotebook/
+          cd release
+          zip -r "KomariNotebook-v${{ steps.version.outputs.version }}.zip" KomariNotebook
+          sha256sum "KomariNotebook-v${{ steps.version.outputs.version }}.zip" > "KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Komari Notebook v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            release/KomariNotebook-v${{ steps.version.outputs.version }}.zip
+            release/KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256
