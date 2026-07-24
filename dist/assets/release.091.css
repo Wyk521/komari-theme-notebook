@@ -1,0 +1,76 @@
+/* Komari Notebook v0.9.1 refinements. */
+.quality-strip {
+  display: grid !important;
+  grid-template-columns: repeat(var(--segment-count, 18), minmax(0, 1fr)) !important;
+  column-gap: 1px !important;
+  row-gap: 0 !important;
+  align-items: end !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+.quality-segment {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: var(--bar-height, 100%) !important;
+  min-height: 2px !important;
+  margin: 0 !important;
+  justify-self: stretch !important;
+  align-self: end !important;
+  border: 0 !important;
+  border-radius: 2px 2px 1px 1px !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+.node-card .quality-strip { padding: 0 !important; }
+.node-card .quality-row.quality-latency-row .quality-strip {
+  height: 11px !important;
+  min-height: 11px !important;
+}
+.node-card .quality-row.quality-loss-row .quality-strip {
+  height: 15px !important;
+  min-height: 15px !important;
+}
+.node-card .quality-row.quality-latency-row .quality-segment,
+.node-card .quality-row.quality-loss-row .quality-segment {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: var(--bar-height, 100%) !important;
+  justify-self: stretch !important;
+}
+.quality-latency-row .quality-segment.good { background: #45c980 !important; }
+.quality-latency-row .quality-segment.fair { background: #58a8d8 !important; }
+.quality-latency-row .quality-segment.warn { background: #f2bf2f !important; }
+.quality-latency-row .quality-segment.bad { background: #e85f68 !important; }
+.quality-loss-row .quality-segment.good,
+.quality-loss-row .quality-segment.fair { background: #43c77d !important; }
+.quality-loss-row .quality-segment.warn { background: #f2bc2d !important; }
+.quality-loss-row .quality-segment.bad { background: #e75f67 !important; }
+.quality-row .quality-segment.empty {
+  background: color-mix(in srgb, var(--ink) 9%, transparent) !important;
+}
+@media (max-width: 650px) {
+  .node-card .quality-row.quality-latency-row .quality-strip {
+    height: 10px !important;
+    min-height: 10px !important;
+  }
+  .node-card .quality-row.quality-loss-row .quality-strip {
+    height: 14px !important;
+    min-height: 14px !important;
+  }
+}
+.notebook-shell.is-loading .skeleton-grid,
+.notebook-shell.is-loading .empty-state,
+.notebook-shell.is-loading .node-table-wrap,
+.notebook-shell.is-loading .node-grid {
+  display: none !important;
+}
+.notebook-shell.is-loading .content-section {
+  min-height: 92px;
+  padding-bottom: 24px;
+}
+.notebook-shell.is-loading #node-count-text { color: var(--ink-faint); }
