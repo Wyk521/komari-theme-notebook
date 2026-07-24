@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - package.json
+  issues:
+    types:
+      - opened
   workflow_dispatch:
 
 permissions:
@@ -13,10 +16,13 @@ permissions:
 
 jobs:
   release:
+    if: github.event_name != 'issues' || startsWith(github.event.issue.title, '[release]')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
