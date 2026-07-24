@@ -1,9 +1,9 @@
 {
   "name": "komari-notebook-theme",
   "private": true,
-  "version": "0.9.1",
+  "version": "0.9.2",
   "type": "module",
-  "description": "Self-contained notebook-style Komari theme with wide network quality bars, multi-route Ping, and interactive history charts.",
+  "description": "Self-contained notebook-style Komari theme with compact summary controls, wide network quality bars, multi-route Ping, and interactive history charts.",
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs"
