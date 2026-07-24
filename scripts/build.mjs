@@ -13,14 +13,8 @@ const versionToken = manifest.version.replace(/\D/g, '');
 const appFile = `app.${versionToken}.js`;
 const bootstrapFile = `bootstrap.${versionToken}.js`;
 
-const appB64 = (await Promise.all(Array.from({ length: 8 }, (_, index) =>
-  readFile(path.join(src, 'assets', `app.js.gz.b64.part${index + 1}`), 'utf8')
-))).join('');
-const appSource = gunzipSync(Buffer.from(appB64, 'base64'));
-const styleB64 = (await Promise.all(Array.from({ length: 8 }, (_, index) => index + 1).map((part) =>
-  readFile(path.join(src, 'assets', `styles.css.gz.b64.part${part}`), 'utf8')
-))).join('');
-const styleSource = gunzipSync(Buffer.from(styleB64, 'base64'));
+const appSource = gunzipSync(Buffer.from(await readFile(path.join(src, 'assets', 'app.js.gz.b64'), 'utf8'), 'base64'));
+const styleSource = gunzipSync(Buffer.from(await readFile(path.join(src, 'assets', 'styles.css.gz.b64'), 'utf8'), 'base64'));
 const styleHash = createHash('sha256').update(styleSource).digest('hex').slice(0, 10);
 const styleFile = `styles.${styleHash}.css`;
 const htmlTemplate = await readFile(path.join(src, 'index.html'), 'utf8');
