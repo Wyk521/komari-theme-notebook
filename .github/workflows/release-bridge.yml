@@ -1,0 +1,68 @@
+name: Release bridge
+
+on:
+  workflow_run:
+    workflows:
+      - Build and publish release
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: npm run build
+
+      - name: Check
+        run: npm run check
+
+      - name: Package theme
+        shell: bash
+        run: |
+          mkdir -p release/package
+          cp -R dist release/package/dist
+          cp komari-theme.json preview.png release/package/
+          cd release/package
+          zip -r "../KomariNotebook-v${{ steps.version.outputs.version }}.zip" .
+          cd ..
+          sha256sum "KomariNotebook-v${{ steps.version.outputs.version }}.zip" > "KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256"
+          unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'komari-theme.json'
+          unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'preview.png'
+          unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'dist/index.html'
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: main
+          name: Komari Notebook v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          make_latest: true
+          overwrite_files: true
+          files: |
+            release/KomariNotebook-v${{ steps.version.outputs.version }}.zip
+            release/KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256
