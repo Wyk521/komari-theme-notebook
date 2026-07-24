@@ -1,0 +1,50 @@
+name: Publish v0.9.2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-v0.9.2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'publish v0.9.2')
+    runs-on: ubuntu-latest
+    env:
+      TARGET_SHA: 0178e4e29d01add972c5bc25d6d5f27a810cb127
+      RELEASE_TAG: v0.9.2
+      RELEASE_ASSET: KomariNotebook-v0.9.2-install.zip
+    steps:
+      - name: Check out tested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
+
+      - name: Verify release metadata
+        run: |
+          node -e "const m=require('./komari-theme.json'); if(m.version!=='0.9.2'||m.author!=='Wyk521') process.exit(1)"
+          test -f dist/index.html
+          test -d dist/assets
+          grep -q 'Komari Monitor' dist/index.html
+
+      - name: Build install package
+        run: zip -qr "/tmp/$RELEASE_ASSET" komari-theme.json preview.png dist
+
+      - name: Create release and upload install package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "/tmp/$RELEASE_ASSET" --clobber
+          else
+            gh release create "$RELEASE_TAG" "/tmp/$RELEASE_ASSET" \
+              --target "$TARGET_SHA" \
+              --title "Komari Notebook v0.9.2" \
+              --notes-file RELEASE_NOTES.md
+          fi
