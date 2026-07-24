@@ -1,0 +1,183 @@
+/* Remove legacy startup card remnants and compress above-fold chrome. */
+#notebook-loader,
+.notebook-loader,
+[data-notebook-loader],
+[data-startup-overlay] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (min-width: 1200px) {
+  .notebook-shell {
+    min-height: calc(100vh - 32px) !important;
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+  }
+  .paper-page { min-height: calc(100vh - 32px) !important; }
+  .binder-strip { top: 78px !important; bottom: 54px !important; }
+
+  .topbar {
+    min-height: 68px !important;
+    gap: 14px !important;
+    padding: 8px 36px 8px 92px !important;
+  }
+  .cover-identity { gap: 12px !important; }
+  .brand { gap: 8px !important; }
+  .brand-mark { width: 36px !important; height: 36px !important; }
+  .brand-mark::after { width: 29px !important; height: 29px !important; }
+  .brand-mark .icon { width: 21px !important; height: 21px !important; }
+  .brand-title-row { gap: 7px !important; }
+  .brand-title-row strong {
+    max-width: 240px !important;
+    font-size: clamp(18px, 1.45vw, 23px) !important;
+  }
+  .compact-notebook-title {
+    max-width: 280px !important;
+    font-size: clamp(18px, 1.4vw, 23px) !important;
+  }
+  .brand-divider { font-size: 14px !important; }
+  .brand-copy > small { margin-top: 0 !important; font-size: 8px !important; }
+  .brand-copy > small .connection-dot { width: 5px !important; height: 5px !important; }
+  .topbar-subtitle {
+    max-width: min(34vw, 460px) !important;
+    font-size: 10px !important;
+  }
+  .top-actions { gap: 3px !important; }
+  .top-actions .icon-button { width: 32px !important; height: 32px !important; }
+
+  .summary-section { padding: 9px 36px 7px 92px !important; }
+  .summary-heading { padding: 6px 12px 5px !important; }
+  .summary-heading h2 { font-size: 13px !important; }
+  .summary-note {
+    min-height: 60px !important;
+    grid-template-columns: 25px minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    padding: 7px 11px !important;
+  }
+  .summary-icon { width: 24px !important; height: 24px !important; }
+  .summary-icon .icon { width: 14px !important; height: 14px !important; }
+  .summary-copy small { margin-bottom: 0 !important; font-size: 8px !important; }
+  .summary-copy > strong { font-size: 17px !important; }
+  .summary-subline { font-size: 9px !important; }
+  .summary-network-grid { gap: 8px !important; }
+  .summary-network-grid > span { gap: 1px 6px !important; }
+  .summary-network-grid b { font-size: 8px !important; }
+  .summary-network-grid strong { font-size: 13px !important; }
+  .summary-network-grid small { font-size: 7.5px !important; }
+  .summary-expand { width: 24px !important; height: 24px !important; }
+
+  .toolbar { gap: 6px !important; }
+  .search-box,
+  .sort-trigger,
+  .view-switcher { height: 32px !important; }
+  .search-box { width: min(250px, 24vw) !important; }
+  .group-tabs { padding-top: 5px !important; }
+
+  .content-section { padding: 3px 36px 38px 92px !important; }
+  .node-grid { gap: 14px !important; }
+}
+
+/* Merge node tools into the summary ledger and remove the duplicate checklist heading. */
+.summary-metrics-contents { display: contents; }
+.summary-metrics-contents.is-hidden { display: none !important; }
+.summary-metrics-contents.is-hidden + .summary-toolbar { grid-column: 1 / -1 !important; }
+
+.summary-ledger {
+  grid-template-columns:
+    minmax(170px, .68fr)
+    minmax(300px, 1.02fr)
+    minmax(220px, .72fr)
+    minmax(500px, 1.58fr) !important;
+}
+.summary-toolbar {
+  display: flex !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 7px 12px !important;
+  border-right: 0 !important;
+}
+.summary-toolbar .toolbar {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  grid-template-columns: minmax(170px, 1fr) auto auto !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  gap: 7px !important;
+}
+.summary-toolbar .search-box {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.summary-toolbar .sort-control,
+.summary-toolbar .view-switcher { min-width: 0 !important; }
+.summary-toolbar .sort-trigger { white-space: nowrap !important; }
+.summary-toolbar .group-tabs {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding-top: 2px !important;
+}
+
+.content-section { padding-top: 2px !important; }
+
+@media (max-width: 1550px) {
+  .summary-ledger {
+    grid-template-columns: minmax(170px, .72fr) minmax(300px, 1.12fr) minmax(220px, .78fr) !important;
+  }
+  .summary-toolbar {
+    grid-column: 1 / -1 !important;
+    border-top: 1px solid var(--border) !important;
+    border-right: 0 !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .summary-ledger { grid-template-columns: 1fr 1fr !important; }
+  .summary-metrics-contents .summary-note { border-bottom: 1px solid var(--border) !important; }
+  .summary-metrics-contents .summary-nodes { border-right: 1px solid var(--border) !important; }
+  .summary-metrics-contents .summary-network { border-right: 0 !important; }
+  .summary-metrics-contents .summary-assets {
+    grid-column: 1 / -1 !important;
+    border-right: 0 !important;
+  }
+  .summary-toolbar {
+    grid-column: 1 / -1 !important;
+    border-top: 0 !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .summary-ledger { grid-template-columns: 1fr !important; }
+  .summary-metrics-contents .summary-note,
+  .summary-metrics-contents .summary-nodes,
+  .summary-metrics-contents .summary-network,
+  .summary-metrics-contents .summary-assets {
+    grid-column: auto !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  .summary-toolbar {
+    grid-column: auto !important;
+    border-top: 0 !important;
+  }
+  .summary-toolbar .toolbar {
+    grid-template-columns: 1fr auto !important;
+  }
+  .summary-toolbar .search-box { grid-column: 1 / -1 !important; }
+}
+
+@media (min-width: 981px) and (max-width: 1550px) {
+  .summary-metrics-contents .summary-nodes,
+  .summary-metrics-contents .summary-network {
+    border-right: 1px solid var(--border) !important;
+    border-bottom: 0 !important;
+  }
+  .summary-metrics-contents .summary-assets {
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+  }
+}
