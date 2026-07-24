@@ -2,6 +2,12 @@
   const root = document.documentElement;
   const validPaperTones = new Set(['warm', 'white', 'blue']);
   const validAccents = new Set(['blue', 'green', 'purple', 'orange', 'red']);
+
+  const releaseStyle = document.createElement('link');
+  releaseStyle.rel = 'stylesheet';
+  releaseStyle.href = '/themes/KomariNotebook/dist/assets/release.091.css';
+  document.head.append(releaseStyle);
+
   try {
     let cachedSettings = {};
     try {
@@ -10,19 +16,20 @@
     } catch {
       cachedSettings = {};
     }
+
     const cachedPaperTone = validPaperTones.has(cachedSettings.paper_tone)
       ? cachedSettings.paper_tone
       : localStorage.getItem('komari-notebook-paper-tone');
-    if (validPaperTones.has(cachedPaperTone)) root.dataset.paper = cachedPaperTone;
-    else root.dataset.settingsPending = 'true';
+    root.dataset.paper = validPaperTones.has(cachedPaperTone) ? cachedPaperTone : 'warm';
     root.dataset.cardColumns = String(cachedSettings.card_columns) === '3' ? '3' : '4';
     root.dataset.accent = validAccents.has(cachedSettings.accent_color) ? cachedSettings.accent_color : 'blue';
+
     const appearance = localStorage.getItem('appearance') || 'system';
     root.dataset.theme = appearance === 'system'
       ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
       : appearance === 'dark' ? 'dark' : 'light';
   } catch {
-    root.dataset.settingsPending = 'true';
+    root.dataset.paper = 'warm';
     root.dataset.cardColumns = '4';
     root.dataset.accent = 'blue';
   }
