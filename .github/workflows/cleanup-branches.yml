@@ -1,8 +1,11 @@
 name: Cleanup temporary branches
 
 on:
-  pull_request:
-    types: [reopened]
+  push:
+    branches:
+      - main
+    paths:
+      - .cleanup-trigger
 
 permissions:
   contents: write
