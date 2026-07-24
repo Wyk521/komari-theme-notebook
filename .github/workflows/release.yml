@@ -10,6 +10,8 @@ on:
     types:
       - opened
       - edited
+  schedule:
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -24,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -38,10 +41,22 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Check whether release already exists
+        id: existing
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check tested theme files
+        if: steps.existing.outputs.exists != 'true'
         run: npm run check
 
       - name: Package importable theme
+        if: steps.existing.outputs.exists != 'true'
         shell: bash
         run: |
           node scripts/package-release.mjs release/package
@@ -55,6 +70,7 @@ jobs:
           ! unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -Eqi 'preview|hotfix|test|092p'
 
       - name: Publish GitHub release
+        if: steps.existing.outputs.exists != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
