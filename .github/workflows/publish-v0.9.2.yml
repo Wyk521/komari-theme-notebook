@@ -13,7 +13,6 @@ permissions:
 
 jobs:
   release:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'publish v0.9.2')
     runs-on: ubuntu-latest
     env:
       TARGET_SHA: 0178e4e29d01add972c5bc25d6d5f27a810cb127
@@ -32,8 +31,13 @@ jobs:
           test -d dist/assets
           grep -q 'Komari Monitor' dist/index.html
 
-      - name: Build install package
-        run: zip -qr "/tmp/$RELEASE_ASSET" komari-theme.json preview.png dist
+      - name: Build importable theme package
+        run: |
+          rm -f "/tmp/$RELEASE_ASSET"
+          zip -qr "/tmp/$RELEASE_ASSET" komari-theme.json preview.png dist
+          unzip -Z1 "/tmp/$RELEASE_ASSET" | grep -qx 'komari-theme.json'
+          unzip -Z1 "/tmp/$RELEASE_ASSET" | grep -qx 'preview.png'
+          unzip -Z1 "/tmp/$RELEASE_ASSET" | grep -qx 'dist/index.html'
 
       - name: Create release and upload install package
         env:
