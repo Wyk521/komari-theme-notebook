@@ -6,11 +6,8 @@ on:
       - main
     paths:
       - package.json
-  issue_comment:
-    types:
-      - created
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '44,49,54,59 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -18,7 +15,6 @@ permissions:
 
 jobs:
   release:
-    if: github.event_name != 'issue_comment' || startsWith(github.event.comment.body, '[release]')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
