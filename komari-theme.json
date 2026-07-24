@@ -1,8 +1,8 @@
 {
   "name": "Komari Notebook 作业本",
   "short": "KomariNotebook",
-  "description": "清爽作业本风格的 Komari 主题，支持三列/四列节点卡片、人民币资产概览、宽柱分段网络质量、多线路 Ping、实时数据兼容与交互式历史图表。",
-  "version": "0.9.0",
+  "description": "清爽作业本风格的 Komari 主题，支持三列/四列节点卡片、宽柱分段网络质量、多线路 Ping、实时数据兼容与交互式历史图表；资源随主题包本地直载，首屏加载更稳定。",
+  "version": "0.9.1",
   "author": "Wyk521",
   "url": "https://github.com/Wyk521/komari-theme-notebook",
   "preview": "preview.png",
@@ -15,82 +15,55 @@
     },
     "data": [
       {
-        "name": {
-          "zh-CN": "顶栏文字",
-          "en": "Header text"
-        },
+        "name": { "zh-CN": "顶栏文字", "en": "Header text" },
         "type": "title"
       },
       {
         "key": "notebook_title",
-        "name": {
-          "zh-CN": "作业本标题",
-          "en": "Notebook title"
-        },
+        "name": { "zh-CN": "作业本标题", "en": "Notebook title" },
         "type": "string",
         "default": "服务器作业本"
       },
       {
         "key": "notebook_subtitle",
-        "name": {
-          "zh-CN": "作业本副标题",
-          "en": "Notebook subtitle"
-        },
+        "name": { "zh-CN": "作业本副标题", "en": "Notebook subtitle" },
         "type": "string",
         "default": "每一台节点，都是今天要认真检查的一页。"
       },
       {
         "key": "footer_note",
-        "name": {
-          "zh-CN": "页脚批注",
-          "en": "Footer note"
-        },
+        "name": { "zh-CN": "页脚批注", "en": "Footer note" },
         "type": "string",
         "default": "今日也要认真检查服务器。"
       },
       {
-        "name": {
-          "zh-CN": "纸张与布局",
-          "en": "Paper and layout"
-        },
+        "name": { "zh-CN": "纸张与布局", "en": "Paper and layout" },
         "type": "title"
       },
       {
         "key": "accent_color",
-        "name": {
-          "zh-CN": "批改笔颜色",
-          "en": "Accent color"
-        },
+        "name": { "zh-CN": "批改笔颜色", "en": "Accent color" },
         "type": "select",
         "options": "blue,green,purple,orange,red",
         "default": "blue"
       },
       {
         "key": "paper_tone",
-        "name": {
-          "zh-CN": "纸张色调",
-          "en": "Paper tone"
-        },
+        "name": { "zh-CN": "纸张色调", "en": "Paper tone" },
         "type": "select",
         "options": "warm,white,blue",
         "default": "warm"
       },
       {
         "key": "default_view",
-        "name": {
-          "zh-CN": "默认节点视图",
-          "en": "Default node view"
-        },
+        "name": { "zh-CN": "默认节点视图", "en": "Default node view" },
         "type": "select",
         "options": "cards,table",
         "default": "cards"
       },
       {
         "key": "card_columns",
-        "name": {
-          "zh-CN": "桌面端卡片列数",
-          "en": "Desktop card columns"
-        },
+        "name": { "zh-CN": "桌面端卡片列数", "en": "Desktop card columns" },
         "type": "select",
         "options": "4,3",
         "default": "4",
@@ -100,54 +73,36 @@
         }
       },
       {
-        "name": {
-          "zh-CN": "首页功能",
-          "en": "Homepage features"
-        },
+        "name": { "zh-CN": "首页功能", "en": "Homepage features" },
         "type": "title"
       },
       {
         "key": "show_summary",
-        "name": {
-          "zh-CN": "显示今日巡检摘要",
-          "en": "Show summary notes"
-        },
+        "name": { "zh-CN": "显示今日巡检摘要", "en": "Show summary notes" },
         "type": "switch",
         "default": true
       },
       {
         "key": "show_search",
-        "name": {
-          "zh-CN": "显示搜索框",
-          "en": "Show search"
-        },
+        "name": { "zh-CN": "显示搜索框", "en": "Show search" },
         "type": "switch",
         "default": true
       },
       {
         "key": "show_group_filter",
-        "name": {
-          "zh-CN": "显示分组筛选",
-          "en": "Show group filter"
-        },
+        "name": { "zh-CN": "显示分组筛选", "en": "Show group filter" },
         "type": "switch",
         "default": true
       },
       {
         "key": "show_tags",
-        "name": {
-          "zh-CN": "显示节点标签",
-          "en": "Show node tags"
-        },
+        "name": { "zh-CN": "显示节点标签", "en": "Show node tags" },
         "type": "switch",
         "default": true
       },
       {
         "key": "show_hardware",
-        "name": {
-          "zh-CN": "显示资源补充信息",
-          "en": "Show resource details"
-        },
+        "name": { "zh-CN": "显示资源补充信息", "en": "Show resource details" },
         "type": "switch",
         "default": true,
         "help": {
@@ -157,10 +112,7 @@
       },
       {
         "key": "show_long_history",
-        "name": {
-          "zh-CN": "显示 7/30/90 天历史",
-          "en": "Show 7/30/90-day history"
-        },
+        "name": { "zh-CN": "显示 7/30/90 天历史", "en": "Show 7/30/90-day history" },
         "type": "switch",
         "default": false,
         "help": {
@@ -170,10 +122,7 @@
       },
       {
         "key": "refresh_seconds",
-        "name": {
-          "zh-CN": "实时数据刷新秒数",
-          "en": "Live refresh seconds"
-        },
+        "name": { "zh-CN": "实时数据刷新秒数", "en": "Live refresh seconds" },
         "type": "number",
         "default": 5,
         "help": {
