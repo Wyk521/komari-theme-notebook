@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(await readFile(path.join(root, 'komari-theme.json'), 'utf8'));
 const html = await readFile(path.join(root, 'dist', 'index.html'), 'utf8');
+const app = await readFile(path.join(root, 'dist', 'assets', 'app.js'), 'utf8');
 const styleB64 = (await Promise.all([1, 2, 3, 4].map((part) =>
   readFile(path.join(root, 'src', 'assets', `styles.css.gz.b64.part${part}`), 'utf8')
 ))).join('');
@@ -21,13 +22,14 @@ if (/preview|hotfix|test/i.test(JSON.stringify({ name: manifest.name, descriptio
 if (!html.includes('<title>Komari Monitor</title>')) errors.push('Required title placeholder missing.');
 if (!html.includes('<meta name="description" content="A simple server monitor tool." />')) errors.push('Required description placeholder missing.');
 if (!html.includes('Powered by Komari Monitor.')) errors.push('Required footer credit missing.');
-if (!html.includes(`/assets/${styleFile}`)) errors.push(`Versioned stylesheet is not loaded: ${styleFile}`);
+if (!app.includes(`/assets/${styleFile}`)) errors.push(`Versioned stylesheet is not loaded by app.js: ${styleFile}`);
+if (app.includes('{{ASSET_BASE}}') || app.includes('{{STYLE_FILE}}')) errors.push('Unresolved asset placeholder remains in app.js.');
 for (const file of ['app.js', styleFile, 'bootstrap.js', 'notebook.svg']) {
   try { await access(path.join(root, 'dist', 'assets', file)); }
   catch { errors.push(`Missing asset: ${file}`); }
 }
 for (const forbidden of ['issue3-loader', 'preview 9', 'hotfix 6', 'KomariNotebookFieldNotesP9H2']) {
-  if (html.toLowerCase().includes(forbidden.toLowerCase())) errors.push(`Test field remains in dist/index.html: ${forbidden}`);
+  if (`${html}\n${app}`.toLowerCase().includes(forbidden.toLowerCase())) errors.push(`Test field remains in generated theme: ${forbidden}`);
 }
 if (errors.length) {
   console.error(errors.join('\n'));
