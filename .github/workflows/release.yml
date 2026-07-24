@@ -12,6 +12,12 @@ on:
       - dist/**
       - preview.png
       - .github/workflows/release.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .release-trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -54,11 +60,14 @@ jobs:
           sha256sum "KomariNotebook-v${{ steps.version.outputs.version }}.zip" > "KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256"
           unzip -l "KomariNotebook-v${{ steps.version.outputs.version }}.zip"
           unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'komari-theme.json'
+          unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'preview.png'
+          unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'dist/index.html'
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: main
           name: Komari Notebook v${{ steps.version.outputs.version }}
           generate_release_notes: true
           make_latest: true
