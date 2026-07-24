@@ -6,17 +6,6 @@ on:
       - main
     paths:
       - package.json
-      - komari-theme.json
-      - src/**
-      - scripts/**
-      - dist/**
-      - preview.png
-      - .github/workflows/release.yml
-  pull_request:
-    branches:
-      - main
-    paths:
-      - .release-trigger
   workflow_dispatch:
 
 permissions:
