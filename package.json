@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.9.1",
   "type": "module",
-  "description": "Notebook-style Komari theme with self-contained assets, wide network quality bars, multi-route Ping, and interactive history charts.",
+  "description": "Self-contained notebook-style Komari theme with wide network quality bars, multi-route Ping, and interactive history charts.",
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs"
