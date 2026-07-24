@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile, cp } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
@@ -9,25 +9,32 @@ const src = path.join(root, 'src');
 const dist = path.join(root, 'dist');
 const manifest = JSON.parse(await readFile(path.join(root, 'komari-theme.json'), 'utf8'));
 const assetBase = `/themes/${manifest.short}/dist/`;
+const versionToken = manifest.version.replace(/\D/g, '');
+const appFile = `app.${versionToken}.js`;
+const bootstrapFile = `bootstrap.${versionToken}.js`;
 
-const styleB64 = (await Promise.all([1, 2, 3, 4].map((part) =>
+const appB64 = (await Promise.all(Array.from({ length: 8 }, (_, index) =>
+  readFile(path.join(src, 'assets', `app.js.gz.b64.part${index + 1}`), 'utf8')
+))).join('');
+const appSource = gunzipSync(Buffer.from(appB64, 'base64'));
+const styleB64 = (await Promise.all(Array.from({ length: 8 }, (_, index) => index + 1).map((part) =>
   readFile(path.join(src, 'assets', `styles.css.gz.b64.part${part}`), 'utf8')
 ))).join('');
 const styleSource = gunzipSync(Buffer.from(styleB64, 'base64'));
-const appTemplate = gunzipSync(await readFile(path.join(src, 'assets', 'app.js.gz'))).toString('utf8');
-const htmlTemplate = gunzipSync(await readFile(path.join(src, 'index.html.gz'))).toString('utf8');
 const styleHash = createHash('sha256').update(styleSource).digest('hex').slice(0, 10);
 const styleFile = `styles.${styleHash}.css`;
-const resolveAssets = (source) => source
+const htmlTemplate = await readFile(path.join(src, 'index.html'), 'utf8');
+const html = htmlTemplate
   .replaceAll('{{ASSET_BASE}}', assetBase)
+  .replaceAll('{{APP_FILE}}', appFile)
+  .replaceAll('{{BOOTSTRAP_FILE}}', bootstrapFile)
   .replaceAll('{{STYLE_FILE}}', styleFile);
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(path.join(dist, 'assets'), { recursive: true });
-await writeFile(path.join(dist, 'assets', 'app.js'), resolveAssets(appTemplate), 'utf8');
+await writeFile(path.join(dist, 'assets', appFile), appSource);
 await writeFile(path.join(dist, 'assets', styleFile), styleSource);
-await cp(path.join(src, 'assets', 'bootstrap.js'), path.join(dist, 'assets', 'bootstrap.js'));
+await cp(path.join(src, 'assets', 'bootstrap.js'), path.join(dist, 'assets', bootstrapFile));
 await cp(path.join(src, 'assets', 'notebook.svg'), path.join(dist, 'assets', 'notebook.svg'));
-await cp(path.join(src, 'assets', 'release.091.css'), path.join(dist, 'assets', 'release.091.css'));
-await writeFile(path.join(dist, 'index.html'), resolveAssets(htmlTemplate), 'utf8');
-console.log(`Built ${manifest.name} -> dist/`);
+await writeFile(path.join(dist, 'index.html'), html, 'utf8');
+console.log(`Built ${manifest.name} ${manifest.version} -> dist/`);
