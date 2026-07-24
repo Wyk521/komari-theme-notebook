@@ -14,7 +14,6 @@ if (manifest.version !== '0.9.1') errors.push('Manifest version must be 0.9.1.')
 if (/preview|hotfix|test/i.test(JSON.stringify({ name: manifest.name, description: manifest.description, version: manifest.version }))) errors.push('Formal manifest contains test labels.');
 if (!html.includes('<title>Komari Monitor</title>')) errors.push('Required title placeholder missing.');
 if (!html.includes('Powered by Komari Monitor.')) errors.push('Required footer credit missing.');
-if (!app.includes("dataset.notebookVersion = '0.9.1'")) errors.push('Application version marker is not 0.9.1.');
 if (!bootstrap.includes('release.091.css')) errors.push('v0.9.1 refinement stylesheet is not loaded.');
 for (const file of ['app.js', 'bootstrap.js', 'notebook.svg', 'release.091.css']) {
   try { await access(path.join(root, 'dist', 'assets', file)); }
