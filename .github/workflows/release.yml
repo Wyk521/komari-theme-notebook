@@ -6,11 +6,6 @@ on:
       - main
     paths:
       - package.json
-  pull_request:
-    branches:
-      - main
-    paths:
-      - .release-trigger
   workflow_dispatch:
 
 permissions:
@@ -26,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Read version
         id: version
@@ -36,26 +31,21 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Build
-        run: npm run build
-
-      - name: Check
+      - name: Check tested theme files
         run: npm run check
 
-      - name: Package theme
+      - name: Package importable theme
         shell: bash
         run: |
-          mkdir -p release/package
-          cp -R dist release/package/dist
-          cp komari-theme.json preview.png release/package/
+          node scripts/package-release.mjs release/package
           cd release/package
           zip -r "../KomariNotebook-v${{ steps.version.outputs.version }}.zip" .
           cd ..
           sha256sum "KomariNotebook-v${{ steps.version.outputs.version }}.zip" > "KomariNotebook-v${{ steps.version.outputs.version }}.zip.sha256"
-          unzip -l "KomariNotebook-v${{ steps.version.outputs.version }}.zip"
           unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'komari-theme.json'
           unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'preview.png'
           unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -qx 'dist/index.html'
+          ! unzip -Z1 "KomariNotebook-v${{ steps.version.outputs.version }}.zip" | grep -Eqi 'preview|hotfix|test|092p'
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
@@ -63,7 +53,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: main
           name: Komari Notebook v${{ steps.version.outputs.version }}
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
           make_latest: true
           overwrite_files: true
           files: |
